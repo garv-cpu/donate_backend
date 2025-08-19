@@ -1,84 +1,76 @@
+// server.js
 import express from "express";
-import fetch from "node-fetch";
+import axios from "axios";
 import cors from "cors";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
-// Cashfree Keys
-const CASHFREE_APP_ID = "YOUR_APP_ID";
-const CASHFREE_SECRET_KEY = "YOUR_SECRET_KEY";
+// ✅ Cashfree Base URLs
+const CASHFREE_BASE_URL =
+  process.env.CASHFREE_ENV === "production"
+    ? "https://api.cashfree.com/pg/orders"
+    : "https://sandbox.cashfree.com/pg/orders";
 
-// Toggle environment
-const ENV = process.env.NODE_ENV === "production" ? "PROD" : "TEST";
+const CASHFREE_CHECKOUT_URL =
+  process.env.CASHFREE_ENV === "production"
+    ? "https://payments.cashfree.com/pg/view/checkout?payment_session_id="
+    : "https://sandbox.cashfree.com/pg/view/checkout?payment_session_id=";
 
-// Endpoint: Create donation order
+// ✅ Create Donate Order API
 app.post("/donate", async (req, res) => {
   try {
     const { name, email, phone, amount } = req.body;
 
-    if (!name || !email || !phone || !amount) {
-      return res.status(400).json({ success: false, message: "Missing fields" });
-    }
-
     const orderId = `donate_${Date.now()}`;
 
-    // Cashfree API URL
-    const url =
-      ENV === "PROD"
-        ? "https://api.cashfree.com/pg/orders"
-        : "https://sandbox.cashfree.com/pg/orders";
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-client-id": CASHFREE_APP_ID,
-        "x-client-secret": CASHFREE_SECRET_KEY,
-        "x-api-version": "2022-09-01",
-      },
-      body: JSON.stringify({
+    const response = await axios.post(
+      CASHFREE_BASE_URL,
+      {
         order_id: orderId,
         order_amount: amount,
         order_currency: "INR",
         customer_details: {
           customer_id: `cust_${Date.now()}`,
-          customer_name: name,
-          customer_email: email,
-          customer_phone: phone,
+          customer_name: name || "Guest User",
+          customer_email: email || "guest@example.com",
+          customer_phone: phone || "9999999999",
         },
-      }),
+      },
+      {
+        headers: {
+          "x-client-id": process.env.CASHFREE_APP_ID,
+          "x-client-secret": process.env.CASHFREE_SECRET_KEY,
+          "x-api-version": "2022-09-01",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const paymentSessionId = response.data.payment_session_id;
+    const checkoutUrl = `${CASHFREE_CHECKOUT_URL}${paymentSessionId}`;
+
+    res.json({
+      success: true,
+      orderId,
+      paymentSessionId,
+      checkoutUrl,
     });
-
-    const data = await response.json();
-
-    if (data?.payment_session_id) {
-      // Correct checkout URL
-      const checkoutUrl =
-        ENV === "PROD"
-          ? `https://payments.cashfree.com/pg/checkout?payment_session_id=${data.payment_session_id}`
-          : `https://sandbox.cashfree.com/pg/checkout?payment_session_id=${data.payment_session_id}`;
-
-      return res.json({
-        success: true,
-        orderId,
-        paymentSessionId: data.payment_session_id,
-        checkoutUrl,
-      });
-    } else {
-      return res
-        .status(400)
-        .json({ success: false, message: "Cashfree order creation failed", data });
-    }
-  } catch (err) {
-    console.error("Error creating donation order:", err);
-    res.status(500).json({ success: false, message: "Server error" });
+  } catch (error) {
+    console.error("Cashfree Error:", error.response?.data || error.message);
+    res.status(500).json({
+      success: false,
+      error: error.response?.data || error.message,
+    });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Cashfree Donate Backend running on http://localhost:${PORT}`);
 });
