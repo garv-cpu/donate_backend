@@ -17,7 +17,7 @@ const CASHFREE_API_BASE = "https://api.cashfree.com/pg"; // change to https://ap
 // ✅ Create Donation Order
 app.post("/donate", async (req, res) => {
   try {
-    const { amount, donorName, donorEmail } = req.body;
+    const { amount, donorName, donorEmail, phone } = req.body;
 
     const orderId = "donate_" + Date.now(); // unique order id
     const customerId =
@@ -31,6 +31,7 @@ app.post("/donate", async (req, res) => {
         customer_id: customerId, // ✅ sanitized
         customer_name: donorName || "Guest Donor",
         customer_email: donorEmail || "guest@example.com",
+        customer_phone: phone,
       },
       order_meta: {
         return_url: "client://payment-success?order_id={order_id}",
