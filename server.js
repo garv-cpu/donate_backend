@@ -13,20 +13,22 @@ app.use(bodyParser.json());
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID;
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
 const CASHFREE_API_BASE = "https://api.cashfree.com/pg"; // change to https://api.cashfree.com/pg for live
-console.log(CASHFREE_APP_ID, CASHFREE_SECRET_KEY);
+
 // ✅ Create Donation Order
 app.post("/donate", async (req, res) => {
   try {
     const { amount, donorName, donorEmail } = req.body;
 
     const orderId = "donate_" + Date.now(); // unique order id
+    const customerId =
+      donorEmail?.replace(/[^a-zA-Z0-9_-]/g, "_") || "guest_" + Date.now();
 
     const orderPayload = {
       order_id: orderId,
       order_amount: amount,
       order_currency: "INR",
       customer_details: {
-        customer_id: donorEmail || "guest_" + Date.now(),
+        customer_id: customerId, // ✅ sanitized
         customer_name: donorName || "Guest Donor",
         customer_email: donorEmail || "guest@example.com",
       },
