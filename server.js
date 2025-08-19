@@ -12,8 +12,7 @@ app.use(bodyParser.json());
 // ⚡ Cashfree Sandbox Keys (replace with live in production)
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID;
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
-const CASHFREE_API_BASE = "https://sandbox.cashfree.com/pg";
-// change to https://api.cashfree.com/pg for live
+const CASHFREE_API_BASE = "https://api.cashfree.com/pg";
 
 // ✅ Create Donation Order
 app.post("/donate", async (req, res) => {
