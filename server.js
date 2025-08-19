@@ -2,8 +2,8 @@ import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import axios from "axios";
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(cors());
@@ -12,8 +12,8 @@ app.use(bodyParser.json());
 // ⚡ Cashfree Sandbox Keys (replace with live in production)
 const CASHFREE_APP_ID = process.env.CASHFREE_APP_ID;
 const CASHFREE_SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
-const CASHFREE_API_BASE = "https://sandbox.cashfree.com/pg"; // change to https://api.cashfree.com/pg for live
-
+const CASHFREE_API_BASE = "https://api.cashfree.com/pg"; // change to https://api.cashfree.com/pg for live
+console.log(CASHFREE_APP_ID, CASHFREE_SECRET_KEY);
 // ✅ Create Donation Order
 app.post("/donate", async (req, res) => {
   try {
@@ -31,7 +31,7 @@ app.post("/donate", async (req, res) => {
         customer_email: donorEmail || "guest@example.com",
       },
       order_meta: {
-        return_url: "http://localhost:3000/payment-success?order_id={order_id}",
+        return_url: "client://payment-success?order_id={order_id}",
       },
     };
 
@@ -43,6 +43,7 @@ app.post("/donate", async (req, res) => {
         headers: {
           "x-client-id": CASHFREE_APP_ID,
           "x-client-secret": CASHFREE_SECRET_KEY,
+          "x-api-version": "2022-09-01",
           "Content-Type": "application/json",
         },
       }
@@ -74,7 +75,9 @@ app.post("/verify-payment", async (req, res) => {
     res.json({ success: true, order: response.data });
   } catch (error) {
     console.error(error.response?.data || error.message);
-    res.status(500).json({ success: false, error: "Payment verification failed" });
+    res
+      .status(500)
+      .json({ success: false, error: "Payment verification failed" });
   }
 });
 
