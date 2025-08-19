@@ -53,8 +53,16 @@ app.post("/donate", async (req, res) => {
       }
     );
 
-    const paymentSessionId = response.data.payment_session_id;
+    const paymentSessionId =
+      response.data.payment_session_id ||
+      response.data.data?.payment_session_id;
+
+    if (!paymentSessionId) {
+      throw new Error("Payment session ID not returned from Cashfree");
+    }
+
     const checkoutUrl = `${CASHFREE_CHECKOUT_URL}${paymentSessionId}`;
+
     console.log("Cashfree API response:", response.data);
 
     res.json({
