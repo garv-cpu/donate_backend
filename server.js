@@ -37,7 +37,7 @@ app.post("/create-order", async (req, res) => {
     customer_details: customerDetails,
     order_meta: {
       return_url: "https://thankyou-gamma.vercel.app/",
-      payment_methods: "UPI,CARD,WALLET", // Correct format
+      payment_methods: "upi,cc,dc,app", // ✅ valid codes
     },
   };
 
