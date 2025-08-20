@@ -32,9 +32,14 @@ app.post("/donate", async (req, res) => {
       order_note: "Donation to Pocket Notes",
     };
 
+    // ✅ Create order
     const response = await cashfree.PGCreateOrder(orderRequest);
 
-    const checkoutUrl = `https://cashfree.com/pg/view/checkout?payment_session_id=${response.data.payment_session_id}`;
+    // ✅ Grab sessionId from Cashfree response
+    const paymentSessionId = response.data.payment_session_id;
+
+    // ✅ Build correct checkout URL
+    const checkoutUrl = `https://payments.cashfree.com/pg/view/checkout?payment_session_id=${paymentSessionId}`;
 
     res.json({
       success: true,
@@ -46,4 +51,6 @@ app.post("/donate", async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log("✅ Server running on http://localhost:5000"));
+app.listen(5000, () =>
+  console.log("✅ Server running on http://localhost:5000")
+);
