@@ -32,23 +32,25 @@ app.post("/create-order", async (req, res) => {
 
   try {
     const response = await axios.post(
-      // ✅ FIXED: Removed "/sessions" from the URL,
-      // The correct endpoint is just the base URL.
-      CASHFREE_API_URL, 
+      // ✅ FIXED: The correct endpoint for creating a payment session is /orders/sessions
+      `${CASHFREE_API_URL}/sessions`,
       orderData,
       {
         headers: {
           "Content-Type": "application/json",
           "x-api-version": API_VERSION,
           "x-request-id": crypto.randomUUID(),
-          "x-client-id": MERCHANT_ID, 
+          "x-client-id": MERCHANT_ID,
           "x-client-secret": SECRET_KEY,
           "x-idempotency-key": crypto.randomUUID(),
         },
       }
     );
 
-    res.json({ payment_session_id: response.data.payment_session_id });
+    res.json({
+      payment_session_id: response.data.payment_session_id,
+      payment_link: response.data.payment_link, // Also get the payment link from the response
+    });
   } catch (error) {
     console.error(
       "Cashfree order creation error:",
@@ -68,7 +70,7 @@ app.get("/verify-payment/:orderId", async (req, res) => {
         "Content-Type": "application/json",
         "x-api-version": API_VERSION,
         "x-request-id": crypto.randomUUID(),
-        "x-client-id": MERCHANT_ID, 
+        "x-client-id": MERCHANT_ID,
         "x-client-secret": SECRET_KEY,
       },
     });
