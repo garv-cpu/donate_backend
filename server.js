@@ -10,9 +10,9 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // Use CORS to allow requests from your frontend
 
-const CASHFREE_API_URL = "https://api.cashfree.com/pg/orders";
-const MERCHANT_ID = process.env.CASHFREE_APP_ID;
-const SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
+const CASHFREE_API_URL = "https://sandbox.cashfree.com/pg/orders";
+const MERCHANT_ID = process.env.CASHFREE_APP_ID_TEST;
+const SECRET_KEY = process.env.CASHFREE_SECRET_KEY_TEST;
 const API_VERSION = "2023-08-01";
 
 // ✅ FIXED: Add a validation check for environment variables
@@ -55,7 +55,7 @@ app.post("/create-order", async (req, res) => {
 
     console.log("Cashfree response:", response.data);
 
-    const paymentLink = response.data.payment_link;
+    const paymentLink = `https://sandbox.cashfree.com/pg/view/gateway/${response.data.payment_session_id}`;
 
     res.json({
       payment_session_id: response.data.payment_session_id,
