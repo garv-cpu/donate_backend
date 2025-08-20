@@ -55,7 +55,7 @@ app.post("/create-order", async (req, res) => {
 
     console.log("Cashfree response:", response.data);
 
-    const paymentLink = `https://www.cashfree.com/checkout/post/submit/${response.data.payment_session_id}`;
+    const paymentLink = response.data.payment_link;
 
     res.json({
       payment_session_id: response.data.payment_session_id,
