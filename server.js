@@ -2,18 +2,25 @@ import express from "express";
 import axios from "axios";
 import crypto from "crypto";
 import dotenv from "dotenv";
+import cors from "cors"; // Add CORS middleware
 
 dotenv.config();
 
 const app = express();
+app.use(express.json());
+app.use(cors()); // Use CORS to allow requests from your frontend
 
-// The base URL for the API
 const CASHFREE_API_URL = "https://api.cashfree.com/pg/orders";
 const MERCHANT_ID = process.env.CASHFREE_APP_ID;
 const SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
 const API_VERSION = "2023-08-01";
 
-app.use(express.json());
+// ✅ FIXED: Add a validation check for environment variables
+if (!MERCHANT_ID || !SECRET_KEY) {
+  console.error("Critical error: CASHFREE_APP_ID or CASHFREE_SECRET_KEY is not defined in the environment.");
+  // Exit the process to prevent the server from starting with invalid keys
+  process.exit(1);
+}
 
 // Route to create an order
 app.post("/create-order", async (req, res) => {
@@ -22,7 +29,7 @@ app.post("/create-order", async (req, res) => {
 
   const orderData = {
     order_id: orderId,
-    order_amount: orderAmount,
+    order_amount: Number(orderAmount),
     order_currency: orderCurrency,
     order_note: orderNote,
     customer_details: customerDetails,
@@ -33,7 +40,6 @@ app.post("/create-order", async (req, res) => {
 
   try {
     const response = await axios.post(
-      // ✅ FIXED: The correct endpoint for creating a new session is the base URL
       CASHFREE_API_URL,
       orderData,
       {
@@ -53,36 +59,12 @@ app.post("/create-order", async (req, res) => {
       payment_link: response.data.payment_link,
     });
   } catch (error) {
+    // Log the full error response from Cashfree for debugging
     console.error(
       "Cashfree order creation error:",
       error.response?.data || error.message
     );
     res.status(500).send("Error creating order");
-  }
-});
-
-// Route to verify payment status
-app.get("/verify-payment/:orderId", async (req, res) => {
-  const { orderId } = req.params;
-
-  try {
-    const response = await axios.get(`${CASHFREE_API_URL}/${orderId}`, {
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-version": API_VERSION,
-        "x-request-id": crypto.randomUUID(),
-        "x-client-id": MERCHANT_ID,
-        "x-client-secret": SECRET_KEY,
-      },
-    });
-
-    res.json(response.data);
-  } catch (error) {
-    console.error(
-      "Cashfree verification error:",
-      error.response?.data || error.message
-    );
-    res.status(500).send("Error verifying payment");
   }
 });
 
