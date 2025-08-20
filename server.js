@@ -1,15 +1,15 @@
 import express from "express";
 import { Cashfree, CFEnvironment } from "cashfree-pg";
-import dotenv from 'dotenv'
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
-app.use(express.json())
+app.use(express.json());
 
 // Init Cashfree SDK
 const cashfree = new Cashfree(
   CFEnvironment.PRODUCTION,
-  process.env.CASHFREE_APP_ID,  
+  process.env.CASHFREE_APP_ID,
   process.env.CASHFREE_SECRET_KEY
 );
 
@@ -33,9 +33,12 @@ app.post("/donate", async (req, res) => {
     };
 
     const response = await cashfree.PGCreateOrder(orderRequest);
+
+    const checkoutUrl = `https://cashfree.com/pg/view/checkout?payment_session_id=${response.data.payment_session_id}`;
+
     res.json({
       success: true,
-      order: response.data, // includes payment_link
+      checkoutUrl,
     });
   } catch (err) {
     console.error("Cashfree error:", err.response?.data || err.message);
