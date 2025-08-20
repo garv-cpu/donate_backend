@@ -17,7 +17,9 @@ const API_VERSION = "2023-08-01";
 
 // ✅ FIXED: Add a validation check for environment variables
 if (!MERCHANT_ID || !SECRET_KEY) {
-  console.error("Critical error: CASHFREE_APP_ID or CASHFREE_SECRET_KEY is not defined in the environment.");
+  console.error(
+    "Critical error: CASHFREE_APP_ID or CASHFREE_SECRET_KEY is not defined in the environment."
+  );
   // Exit the process to prevent the server from starting with invalid keys
   process.exit(1);
 }
@@ -39,27 +41,31 @@ app.post("/create-order", async (req, res) => {
   };
 
   try {
-    const response = await axios.post(
-      CASHFREE_API_URL,
-      orderData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-version": API_VERSION,
-          "x-request-id": crypto.randomUUID(),
-          "x-client-id": MERCHANT_ID,
-          "x-client-secret": SECRET_KEY,
-          "x-idempotency-key": crypto.randomUUID(),
-        },
-      }
-    );
-
-    res.json({
-      payment_session_id: response.data.payment_session_id,
-      payment_link: response.data.payment_link,
+    const response = await axios.post(CASHFREE_API_URL, orderData, {
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-version": API_VERSION,
+        "x-request-id": crypto.randomUUID(),
+        "x-client-id": MERCHANT_ID,
+        "x-client-secret": SECRET_KEY,
+        "x-idempotency-key": crypto.randomUUID(),
+      },
     });
+
+    console.log("Cashfree response:", response.data); // ✅ Log full response
+
+    if (response.data.status === "OK" && response.data.payment_link) {
+      res.json({
+        payment_session_id: response.data.payment_session_id,
+        payment_link: response.data.payment_link,
+      });
+    } else {
+      console.error("Cashfree returned error:", response.data);
+      res.status(400).json({
+        error: response.data.message || "Failed to create payment link",
+      });
+    }
   } catch (error) {
-    // Log the full error response from Cashfree for debugging
     console.error(
       "Cashfree order creation error:",
       error.response?.data || error.message
