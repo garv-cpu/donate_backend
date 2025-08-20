@@ -27,7 +27,7 @@ app.post("/donate", async (req, res) => {
         customer_phone: phone,
       },
       order_meta: {
-        return_url: "https://pocketnotes.com/thankyou?order_id={order_id}",
+        return_url: "https://thankyou-gamma.vercel.app/",
       },
       order_note: "Donation to Pocket Notes",
     };
