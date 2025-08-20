@@ -25,7 +25,6 @@ app.post("/create-order", async (req, res) => {
     order_currency: orderCurrency,
     order_note: orderNote,
     customer_details: customerDetails,
-    // ✅ ADDED: The required return_url for redirection after payment
     order_meta: {
       return_url: "https://thankyou-gamma.vercel.app/",
     },
@@ -33,15 +32,17 @@ app.post("/create-order", async (req, res) => {
 
   try {
     const response = await axios.post(
-      `${CASHFREE_API_URL}/sessions`,
+      // ✅ FIXED: Removed "/sessions" from the URL,
+      // The correct endpoint is just the base URL.
+      CASHFREE_API_URL, 
       orderData,
       {
         headers: {
           "Content-Type": "application/json",
           "x-api-version": API_VERSION,
           "x-request-id": crypto.randomUUID(),
-          "x-client-id": MERCHANT_ID, // ADDED: Client ID for authentication
-          "x-client-secret": SECRET_KEY, // ADDED: Secret Key for authentication
+          "x-client-id": MERCHANT_ID, 
+          "x-client-secret": SECRET_KEY,
           "x-idempotency-key": crypto.randomUUID(),
         },
       }
@@ -67,8 +68,8 @@ app.get("/verify-payment/:orderId", async (req, res) => {
         "Content-Type": "application/json",
         "x-api-version": API_VERSION,
         "x-request-id": crypto.randomUUID(),
-        "x-client-id": MERCHANT_ID, // ADDED: Client ID for authentication
-        "x-client-secret": SECRET_KEY, // ADDED: Secret Key for authentication
+        "x-client-id": MERCHANT_ID, 
+        "x-client-secret": SECRET_KEY,
       },
     });
 
