@@ -7,6 +7,7 @@ dotenv.config();
 
 const app = express();
 
+// The base URL for the API
 const CASHFREE_API_URL = "https://api.cashfree.com/pg/orders";
 const MERCHANT_ID = process.env.CASHFREE_APP_ID;
 const SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
@@ -32,7 +33,8 @@ app.post("/create-order", async (req, res) => {
 
   try {
     const response = await axios.post(
-      `${CASHFREE_API_URL}/sessions`,
+      // ✅ FIXED: The correct endpoint for creating a new session is the base URL
+      CASHFREE_API_URL,
       orderData,
       {
         headers: {
@@ -42,8 +44,6 @@ app.post("/create-order", async (req, res) => {
           "x-client-id": MERCHANT_ID,
           "x-client-secret": SECRET_KEY,
           "x-idempotency-key": crypto.randomUUID(),
-          // ✅ FIXED: Add the x-api-key header for authentication
-          "x-api-key": SECRET_KEY,
         },
       }
     );
@@ -73,8 +73,6 @@ app.get("/verify-payment/:orderId", async (req, res) => {
         "x-request-id": crypto.randomUUID(),
         "x-client-id": MERCHANT_ID,
         "x-client-secret": SECRET_KEY,
-        // ✅ FIXED: Add the x-api-key header here as well
-        "x-api-key": SECRET_KEY,
       },
     });
 
