@@ -37,7 +37,7 @@ app.post("/create-order", async (req, res) => {
     customer_details: customerDetails,
     order_meta: {
       return_url: "https://thankyou-gamma.vercel.app/",
-      payment_methods: ["UPI", "CARD", "WALLET"], // Add supported methods
+      payment_methods: "UPI,CARD,WALLET", // Correct format
     },
   };
 
@@ -53,15 +53,14 @@ app.post("/create-order", async (req, res) => {
       },
     });
 
-    console.log("Cashfree response:", response.data); // ✅ Log full response
+    console.log("Cashfree response:", response.data);
 
-    if (response.data.status === "OK" && response.data.payment_link) {
+    if (response.data.payment_link) {
       res.json({
         payment_session_id: response.data.payment_session_id,
         payment_link: response.data.payment_link,
       });
     } else {
-      console.error("Cashfree returned error:", response.data);
       res.status(400).json({
         error: response.data.message || "Failed to create payment link",
       });
