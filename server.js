@@ -32,7 +32,6 @@ app.post("/create-order", async (req, res) => {
 
   try {
     const response = await axios.post(
-      // ✅ FIXED: The correct endpoint for creating a payment session is /orders/sessions
       `${CASHFREE_API_URL}/sessions`,
       orderData,
       {
@@ -43,13 +42,15 @@ app.post("/create-order", async (req, res) => {
           "x-client-id": MERCHANT_ID,
           "x-client-secret": SECRET_KEY,
           "x-idempotency-key": crypto.randomUUID(),
+          // ✅ FIXED: Add the x-api-key header for authentication
+          "x-api-key": SECRET_KEY,
         },
       }
     );
 
     res.json({
       payment_session_id: response.data.payment_session_id,
-      payment_link: response.data.payment_link, // Also get the payment link from the response
+      payment_link: response.data.payment_link,
     });
   } catch (error) {
     console.error(
@@ -72,6 +73,8 @@ app.get("/verify-payment/:orderId", async (req, res) => {
         "x-request-id": crypto.randomUUID(),
         "x-client-id": MERCHANT_ID,
         "x-client-secret": SECRET_KEY,
+        // ✅ FIXED: Add the x-api-key header here as well
+        "x-api-key": SECRET_KEY,
       },
     });
 
