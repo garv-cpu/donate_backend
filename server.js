@@ -24,7 +24,11 @@ app.post("/create-order", async (req, res) => {
     order_amount: orderAmount,
     order_currency: orderCurrency,
     order_note: orderNote,
-    customer_details: customerDetails, // Add return_url here if needed for redirection after payment
+    customer_details: customerDetails,
+    // ✅ ADDED: The required return_url for redirection after payment
+    order_meta: {
+      return_url: "https://thankyou-gamma.vercel.app/",
+    },
   };
 
   try {
@@ -41,9 +45,9 @@ app.post("/create-order", async (req, res) => {
           "x-idempotency-key": crypto.randomUUID(),
         },
       }
-    ); // Return the payment session ID, not the full URL
+    );
 
-    res.json({ payment_url: response.data.payment_url });
+    res.json({ payment_session_id: response.data.payment_session_id });
   } catch (error) {
     console.error(
       "Cashfree order creation error:",
@@ -54,8 +58,8 @@ app.post("/create-order", async (req, res) => {
 });
 
 // Route to verify payment status
-app.post("/verify-payment", async (req, res) => {
-  const { orderId } = req.body;
+app.get("/verify-payment/:orderId", async (req, res) => {
+  const { orderId } = req.params;
 
   try {
     const response = await axios.get(`${CASHFREE_API_URL}/${orderId}`, {
