@@ -55,16 +55,12 @@ app.post("/create-order", async (req, res) => {
 
     console.log("Cashfree response:", response.data);
 
-    if (response.data.payment_link) {
-      res.json({
-        payment_session_id: response.data.payment_session_id,
-        payment_link: response.data.payment_link,
-      });
-    } else {
-      res.status(400).json({
-        error: response.data.message || "Failed to create payment link",
-      });
-    }
+    const paymentLink = `https://www.cashfree.com/checkout/post/submit/${response.data.payment_session_id}`;
+
+    res.json({
+      payment_session_id: response.data.payment_session_id,
+      payment_link: paymentLink,
+    });
   } catch (error) {
     console.error(
       "Cashfree order creation error:",
