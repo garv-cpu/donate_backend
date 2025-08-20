@@ -8,7 +8,7 @@ app.use(express.json());
 
 // Init Cashfree SDK
 const cashfree = new Cashfree(
-  CFEnvironment.PRODUCTION,
+  CFEnvironment.SANDBOX,
   process.env.CASHFREE_APP_ID,
   process.env.CASHFREE_SECRET_KEY
 );
@@ -39,7 +39,8 @@ app.post("/donate", async (req, res) => {
     const paymentSessionId = response.data.payment_session_id;
 
     // ✅ Build correct checkout URL
-    const checkoutUrl = `https://payments.cashfree.com/pg/view/checkout?payment_session_id=${paymentSessionId}`;
+    const checkoutUrl = `https://sandbox.cashfree.com/pg/view/checkout?payment_session_id=${paymentSessionId}`;
+
 
     res.json({
       success: true,
