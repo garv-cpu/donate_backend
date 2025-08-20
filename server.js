@@ -7,7 +7,7 @@ dotenv.config();
 
 const app = express();
 
-const CASHFREE_API_URL = "https://sandbox.cashfree.com/pg/orders";
+const CASHFREE_API_URL = "https://api.cashfree.com/pg/orders";
 const MERCHANT_ID = process.env.CASHFREE_APP_ID;
 const SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
 const API_VERSION = "2023-08-01";
