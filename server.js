@@ -1,14 +1,17 @@
 import express from "express";
 import { Cashfree, CFEnvironment } from "cashfree-pg";
 import dotenv from "dotenv";
+import cors from 'cors';
+
 dotenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors())
 
 // Init Cashfree SDK
 const cashfree = new Cashfree(
-  CFEnvironment.SANDBOX,
+  CFEnvironment.PRODUCTION,
   process.env.CASHFREE_APP_ID,
   process.env.CASHFREE_SECRET_KEY
 );
@@ -39,7 +42,7 @@ app.post("/donate", async (req, res) => {
     const paymentSessionId = response.data.payment_session_id;
 
     // ✅ Build correct checkout URL
-    const checkoutUrl = `https://sandbox.cashfree.com/pg/view/checkout?payment_session_id=${paymentSessionId}`;
+    const checkoutUrl = `https://payments.cashfree.com/pg/view/checkout?payment_session_id=${paymentSessionId}`;
 
 
     res.json({
