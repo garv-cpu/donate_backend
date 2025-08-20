@@ -1,64 +1,46 @@
 import express from "express";
-import axios from "axios";
-import cors from "cors";
+import { Cashfree, CFEnvironment } from "cashfree-pg";
+import dotenv from 'dotenv'
+dotenv.config()
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+app.use(express.json())
 
-// Cashfree Production API Base
-const CASHFREE_API_BASE = "https://api.cashfree.com/pg";
-const CASHFREE_CLIENT_ID = process.env.CASHFREE_APP_ID;
-const CASHFREE_CLIENT_SECRET = process.env.CASHFREE_SECRET_KEY;
+// Init Cashfree SDK
+const cashfree = new Cashfree(
+  CFEnvironment.PRODUCTION,
+  process.env.CASHFREE_APP_ID,  
+  process.env.CASHFREE_SECRET_KEY
+);
 
-// Donation endpoint
 app.post("/donate", async (req, res) => {
   try {
     const { name, email, phone, amount } = req.body;
 
-    // create unique order id
-    const orderId = `donate_${Date.now()}`;
-
-    // call Cashfree Orders API
-    const response = await axios.post(
-      `${CASHFREE_API_BASE}/orders`,
-      {
-        order_id: orderId,
-        order_amount: amount,
-        order_currency: "INR",
-        customer_details: {
-          customer_id: phone || `cust_${Date.now()}`,
-          customer_name: name,
-          customer_email: email,
-          customer_phone: phone,
-        },
+    const orderRequest = {
+      order_amount: amount,
+      order_currency: "INR",
+      customer_details: {
+        customer_id: `cust_${Date.now()}`,
+        customer_name: name,
+        customer_email: email,
+        customer_phone: phone,
       },
-      {
-        headers: {
-          "x-client-id": CASHFREE_CLIENT_ID,
-          "x-client-secret": CASHFREE_CLIENT_SECRET,
-          "x-api-version": "2022-09-01",
-          "Content-Type": "application/json",
-        },
-      }
-    );
+      order_meta: {
+        return_url: "https://pocketnotes.com/thankyou?order_id={order_id}",
+      },
+      order_note: "Donation to Pocket Notes",
+    };
 
-    const paymentSessionId = response.data.payment_session_id;
-
-    // ✅ New way: Production Checkout URL
-    const checkoutUrl = `https://cashfree.com/pg/view/checkout?payment_session_id=${paymentSessionId}`;
-
+    const response = await cashfree.PGCreateOrder(orderRequest);
     res.json({
       success: true,
-      orderId,
-      paymentSessionId,
-      checkoutUrl,
+      order: response.data, // includes payment_link
     });
   } catch (err) {
     console.error("Cashfree error:", err.response?.data || err.message);
-    res.status(500).json({ success: false, error: "Payment init failed" });
+    res.status(500).json({ success: false, error: err.message });
   }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(5000, () => console.log("✅ Server running on http://localhost:5000"));
