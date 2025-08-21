@@ -45,8 +45,8 @@ app.post("/chat", async (req, res) => {
           model: "mistralai/mistral-7b-instruct:free", // free tier model
           messages: [
             {
-  role: "system",
-  content: `
+              role: "system",
+              content: `
 You are Pocket Buddy, the built-in assistant of the Pocket Notes app. 
 Your job is to be conversational, friendly, and genuinely helpful. 
 
@@ -78,12 +78,7 @@ Your job is to be conversational, friendly, and genuinely helpful.
 
 ## User’s Saved Notes:
 ${context}
-`
-}
-
-            {
-              role: "system",
-              content: `Here are the user’s saved notes:\n${context}`,
+`,
             },
             { role: "user", content: message },
           ],
