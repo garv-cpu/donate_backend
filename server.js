@@ -106,6 +106,18 @@ ${context}
   }
 });
 
+app.get("/health", (req, res) => res.send("OK"));
+
+// Keep-alive ping every 14 minutes
+setInterval(async () => {
+  try {
+    await fetch(`https://donate-backend-vcb8.onrender.com/health`);
+    console.log("🔄 Keep-alive ping sent");
+  } catch (err) {
+    console.error("❌ Keep-alive failed:", err);
+  }
+}, 14 * 60 * 1000); // 14 minutes
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(`✅ Pocket Buddy server running on port ${PORT}`)
