@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(cors());
 
 // Replace with your free OpenRouter API key
-const OPENROUTER_API_KEY = "YOUR_API_KEY_HERE";
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
 // Pocket Buddy Chat
 app.post("/chat", async (req, res) => {
