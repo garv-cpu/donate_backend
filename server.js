@@ -25,36 +25,54 @@ app.post("/chat", async (req, res) => {
       context = notes
         .map(
           (n, idx) =>
-            `Note ${idx + 1} [${n.category || "General"}]: ${n.title}\n${n.content || ""}`
+            `Note ${idx + 1} [${n.category || "General"}]: ${n.title}\n${
+              n.content || ""
+            }`
         )
         .join("\n\n");
     }
 
     // Call LLM via OpenRouter
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct:free", // free tier model
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are Pocket Buddy, a helpful assistant inside the Pocket Notes app. " +
-              "You help users reflect on their notes, summarize them, extract tasks, " +
-              "and connect related ideas. Always stay concise and user-friendly.",
-          },
-          { role: "system", content: `Here are the user’s saved notes:\n${context}` },
-          { role: "user", content: message },
-        ],
-      }),
-    });
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "mistralai/mistral-7b-instruct:free", // free tier model
+          messages: [
+            {
+              role: "system",
+              content:
+                "You are Pocket Buddy, a helpful assistant inside the Pocket Notes app. " +
+                "You help users reflect on their notes, summarize them, extract tasks, " +
+                "and connect related ideas. Always stay concise and user-friendly.",
+            },
+            {
+              role: "system",
+              content: `Here are the user’s saved notes:\n${context}`,
+            },
+            { role: "user", content: message },
+          ],
+        }),
+      }
+    );
 
     const data = await response.json();
-    const reply = data?.choices?.[0]?.message?.content || "Sorry, I couldn’t generate a response.";
+    console.log("OpenRouter response:", data); // 👀 log full response
+
+    if (data.error) {
+      return res
+        .status(500)
+        .json({ error: data.error.message || "OpenRouter error" });
+    }
+
+    const reply =
+      data?.choices?.[0]?.message?.content ||
+      "Sorry, I couldn’t generate a response.";
 
     res.json({ reply });
   } catch (error) {
@@ -64,4 +82,6 @@ app.post("/chat", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Pocket Buddy server running on port ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`✅ Pocket Buddy server running on port ${PORT}`)
+);
