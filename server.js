@@ -205,6 +205,44 @@ ${context}
   }
 });
 
+// In-memory storage for notes (replace with DB later if needed)
+let notes = [];
+
+// Save ALL notes for a user (bulk save)
+app.post("/saveAll", (req, res) => {
+  const { userId, pockets } = req.body;
+
+  if (!userId || !Array.isArray(pockets)) {
+    return res.status(400).json({ error: "userId and pockets[] are required" });
+  }
+
+  // Remove old notes for this user
+  notes = notes.filter((note) => note.userId !== userId);
+
+  // Add new ones with metadata
+  const userNotes = pockets.map((pocket) => ({
+    ...pocket,
+    userId,
+    id: pocket.id || Date.now() + Math.random(),
+    createdAt: pocket.createdAt || new Date(),
+  }));
+
+  notes.push(...userNotes);
+
+  res.json({
+    message: "All notes saved successfully",
+    count: userNotes.length,
+  });
+});
+
+// Restore all notes for a user
+app.get("/restore/:userId", (req, res) => {
+  const { userId } = req.params;
+  const userNotes = notes.filter((note) => note.userId === userId);
+
+  res.json({ notes: userNotes });
+});
+
 app.get("/health", (req, res) => res.send("OK"));
 
 // Keep-alive ping every 14 minutes
